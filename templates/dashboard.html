@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — DermAI Detect</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar-custom navbar navbar-expand-lg">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+      <div class="brand-icon"><i class="fa-solid fa-microscope"></i></div>
+      DermAI Detect
+    </a>
+    <button class="navbar-toggler border-0" type="button"
+            data-bs-toggle="collapse" data-bs-target="#nav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav mx-auto gap-1">
+        <li class="nav-item">
+          <a class="nav-link active" href="{{ url_for('dashboard') }}">
+            <i class="fa-solid fa-chart-pie"></i> Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('predict') }}">
+            <i class="fa-solid fa-upload"></i> Analyser
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('patients') }}">
+            <i class="fa-solid fa-users"></i> Patients
+          </a>
+        </li>
+      </ul>
+      <div class="d-flex align-items-center gap-3">
+        <div class="nav-user-pill">
+          <div class="avatar">{{ session['full_name'][0] | upper }}</div>
+          {{ session['full_name'] }}
+        </div>
+        <a href="{{ url_for('logout') }}" class="btn-logout">
+          <i class="fa-solid fa-right-from-bracket"></i> Déconnexion
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- CONTENT -->
+<div class="main-content">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+          <i class="fa-solid fa-circle-info"></i>{{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- HEADER -->
+  <div class="d-flex justify-content-between align-items-start mb-4 fade-up d1">
+    <div>
+      <h1 class="page-title">Tableau de bord</h1>
+      <p class="page-subtitle">Vue d'ensemble des analyses et statistiques</p>
+    </div>
+    <a href="{{ url_for('predict') }}" class="btn-solid">
+      <i class="fa-solid fa-plus"></i> Nouvelle analyse
+    </a>
+  </div>
+
+  <!-- STATS -->
+  <div class="stat-grid fade-up d2">
+
+    <div class="stat-card">
+      <div class="stat-top">
+        <span class="stat-label">Total patients</span>
+        <div class="stat-icon-box blue">
+          <i class="fa-solid fa-users"></i>
+        </div>
+      </div>
+      <div class="stat-number" id="c-total">{{ total }}</div>
+      <div class="stat-desc">analyses effectuées</div>
+    </div>
+
+    <div class="stat-card danger">
+      <div class="stat-top">
+        <span class="stat-label">Cas malins</span>
+        <div class="stat-icon-box red">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+      </div>
+      <div class="stat-number" id="c-mal">{{ malignant }}</div>
+      <div class="stat-desc">Malignant détectés</div>
+    </div>
+
+    <div class="stat-card success">
+      <div class="stat-top">
+        <span class="stat-label">Cas bénins</span>
+        <div class="stat-icon-box green">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+      </div>
+      <div class="stat-number" id="c-ben">{{ benign }}</div>
+      <div class="stat-desc">Benign détectés</div>
+    </div>
+
+  </div>
+
+  <!-- ROW 2 -->
+  <div class="row g-4 mb-4 fade-up d3">
+
+    <!-- Donut chart -->
+    <div class="col-lg-5">
+      <div class="card h-100">
+        <div class="card-header">
+          <span class="card-title">
+            <i class="fa-solid fa-chart-donut"></i> Répartition
+          </span>
+        </div>
+        <div class="card-body d-flex align-items-center justify-content-center">
+          {% if total > 0 %}
+            <canvas id="donutChart" style="max-height:240px;"></canvas>
+          {% else %}
+            <div class="text-center py-4" style="color:var(--gray);">
+              <i class="fa-solid fa-chart-pie fa-3x mb-3 d-block"
+                 style="opacity:0.2;"></i>
+              Aucune donnée disponible
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="col-lg-7">
+      <div class="card h-100">
+        <div class="card-header">
+          <span class="card-title">
+            <i class="fa-solid fa-bolt"></i> Actions rapides
+          </span>
+        </div>
+        <div class="card-body d-flex flex-column gap-3">
+
+          <a href="{{ url_for('predict') }}" class="action-card">
+            <div class="action-icon"
+                 style="background:var(--primary-light);
+                        color:var(--primary);">
+              <i class="fa-solid fa-upload"></i>
+            </div>
+            <div>
+              <div class="action-title">Nouvelle analyse IA</div>
+              <div class="action-desc">
+                Uploader une image dermatologique et obtenir un diagnostic
+              </div>
+            </div>
+            <i class="fa-solid fa-chevron-right ms-auto"
+               style="color:#d1d5db;"></i>
+          </a>
+
+          <a href="{{ url_for('patients') }}" class="action-card">
+            <div class="action-icon"
+                 style="background:var(--success-light);
+                        color:var(--success);">
+              <i class="fa-solid fa-folder-open"></i>
+            </div>
+            <div>
+              <div class="action-title">Historique patients</div>
+              <div class="action-desc">
+                Consulter toutes les analyses enregistrées
+              </div>
+            </div>
+            <i class="fa-solid fa-chevron-right ms-auto"
+               style="color:#d1d5db;"></i>
+          </a>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- DERNIÈRES ANALYSES -->
+  <div class="fade-up d4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="page-title" style="font-size:1.1rem;">
+        <i class="fa-solid fa-clock-rotate-left me-2"
+           style="color:var(--primary);font-size:1rem;"></i>
+        Dernières analyses
+      </h2>
+      <a href="{{ url_for('patients') }}" class="btn-outline"
+         style="font-size:0.82rem;padding:6px 14px;">
+        Voir tout <i class="fa-solid fa-arrow-right"></i>
+      </a>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Patient</th>
+            <th>Image</th>
+            <th>Diagnostic</th>
+            <th>Confiance</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if recent %}
+            {% for p in recent %}
+            <tr>
+              <td style="color:var(--gray);font-size:0.82rem;">#{{ p.id }}</td>
+
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div style="width:32px;height:32px;border-radius:50%;
+                              background:var(--primary-light);
+                              color:var(--primary);font-weight:700;
+                              font-size:0.8rem;flex-shrink:0;
+                              display:flex;align-items:center;
+                              justify-content:center;">
+                    {{ p.name[0] | upper }}
+                  </div>
+                  <span style="font-weight:600;font-size:0.875rem;">
+                    {{ p.name }}
+                  </span>
+                </div>
+              </td>
+
+              <td>
+                <img src="{{ url_for('static',
+                             filename='uploads/' + p.image_path) }}"
+                     class="patient-thumb" alt="img"/>
+              </td>
+
+              <td>
+                {% if p.result == 'Malignant' %}
+                  <span class="badge badge-danger">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    Malignant
+                  </span>
+                {% else %}
+                  <span class="badge badge-success">
+                    <i class="fa-solid fa-circle-check"></i>
+                    Benign
+                  </span>
+                {% endif %}
+              </td>
+
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="progress-wrap" style="width:80px;">
+                    <div class="progress-bar {{ p.result | lower }}"
+                         style="width:{{ p.probability }}%;"></div>
+                  </div>
+                  <span style="font-size:0.82rem;font-weight:600;
+                    color:{% if p.result == 'Malignant' %}
+                      var(--danger)
+                    {% else %}
+                      var(--success)
+                    {% endif %};">
+                    {{ p.probability }}%
+                  </span>
+                </div>
+              </td>
+
+              <td style="font-size:0.82rem;color:var(--gray);">
+                {{ p.created_at.strftime('%d/%m/%Y %H:%M') }}
+              </td>
+
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="6" class="text-center py-5"
+                  style="color:var(--gray);">
+                <i class="fa-solid fa-inbox fa-2x d-block mb-2"
+                   style="opacity:0.2;"></i>
+                Aucune analyse effectuée
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  {% if total > 0 %}
+  new Chart(document.getElementById('donutChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Malignant', 'Benign'],
+      datasets: [{
+        data: [{{ malignant }}, {{ benign }}],
+        backgroundColor: ['#dc2626', '#059669'],
+        borderWidth: 0,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      cutout: '70%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            padding: 20,
+            font: { size: 12, family: 'DM Sans' },
+            usePointStyle: true
+          }
+        }
+      }
+    }
+  });
+  {% endif %}
+
+  function counter(id, target) {
+    const el = document.getElementById(id);
+    let n = 0;
+    const step = Math.ceil(target / 40);
+    const t = setInterval(() => {
+      n = Math.min(n + step, target);
+      el.textContent = n;
+      if (n >= target) clearInterval(t);
+    }, 40);
+  }
+
+  counter('c-total', {{ total }});
+  counter('c-mal',   {{ malignant }});
+  counter('c-ben',   {{ benign }});
+</script>
+
+</body>
+</html>

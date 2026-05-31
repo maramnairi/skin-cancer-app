@@ -1,0 +1,17 @@
+# Modèle IA (trop lourd pour GitHub)
+model/
+
+# Images uploadées
+static/uploads/*
+!static/uploads/.gitkeep
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+
+# IDE
+.vscode/
+.idea/

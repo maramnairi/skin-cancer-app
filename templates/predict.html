@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Analyser — DermAI Detect</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar-custom navbar navbar-expand-lg">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+      <div class="brand-icon"><i class="fa-solid fa-microscope"></i></div>
+      DermAI Detect
+    </a>
+    <button class="navbar-toggler border-0" type="button"
+            data-bs-toggle="collapse" data-bs-target="#nav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav mx-auto gap-1">
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('dashboard') }}">
+            <i class="fa-solid fa-chart-pie"></i> Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="{{ url_for('predict') }}">
+            <i class="fa-solid fa-upload"></i> Analyser
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('patients') }}">
+            <i class="fa-solid fa-users"></i> Patients
+          </a>
+        </li>
+      </ul>
+      <div class="d-flex align-items-center gap-3">
+        <div class="nav-user-pill">
+          <div class="avatar">{{ session['full_name'][0]|upper }}</div>
+          {{ session['full_name'] }}
+        </div>
+        <a href="{{ url_for('logout') }}" class="btn-logout">
+          <i class="fa-solid fa-right-from-bracket"></i> Déconnexion
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="main-content">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+          <i class="fa-solid fa-circle-info"></i>{{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <div class="mb-4 fade-up d1">
+    <h1 class="page-title">Nouvelle analyse</h1>
+    <p class="page-subtitle">
+      Uploadez une image dermatologique pour obtenir un diagnostic IA
+    </p>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- FORMULAIRE -->
+    <div class="col-lg-7 fade-up d2">
+      <form method="POST" action="{{ url_for('predict') }}"
+            enctype="multipart/form-data" id="predictForm" novalidate>
+
+        <!-- INFOS PATIENT -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <span class="card-title">
+              <i class="fa-solid fa-user-injured"></i>
+              Informations patient
+            </span>
+          </div>
+          <div class="card-body">
+
+            <div class="row g-3">
+
+              <!-- Nom -->
+              <div class="col-12">
+                <label class="form-label">
+                  Nom complet
+                  <span style="color:var(--danger);">*</span>
+                </label>
+                <div class="input-with-icon">
+                  <i class="fa-solid fa-user input-icon"></i>
+                  <input type="text" class="form-control"
+                         id="patient_name" name="patient_name"
+                         placeholder="Ex : Ahmed Ben Ali" required/>
+                </div>
+              </div>
+
+              <!-- Age -->
+              <div class="col-12 col-sm-4">
+                <label class="form-label">
+                  Âge du patient
+                </label>
+                <div class="input-with-icon">
+                  <i class="fa-solid fa-calendar input-icon"></i>
+                  <input type="number" class="form-control"
+                         name="age" placeholder="Ex : 45"
+                         min="1" max="120"/>
+                </div>
+              </div>
+
+              <!-- Localisation -->
+              <div class="col-12 col-sm-8">
+                <label class="form-label">
+                  Localisation de la lésion
+                </label>
+                <div class="input-with-icon">
+                  <i class="fa-solid fa-location-dot input-icon"></i>
+                  <input type="text" class="form-control"
+                         name="localisation"
+                         placeholder="Ex : Dos, avant-bras gauche..."/>
+                </div>
+              </div>
+
+              <!-- Largeur -->
+              <div class="col-12 col-sm-6">
+                <label class="form-label">
+                  Taille / Largeur de la lésion
+                </label>
+                <div class="input-with-icon">
+                  <i class="fa-solid fa-ruler input-icon"></i>
+                  <input type="text" class="form-control"
+                         name="width"
+                         placeholder="Ex : 1.5 cm"/>
+                </div>
+              </div>
+
+              <!-- Depuis quand -->
+              <div class="col-12 col-sm-6">
+                <label class="form-label">
+                  Depuis quand ?
+                </label>
+                <div class="input-with-icon">
+                  <i class="fa-solid fa-clock input-icon"></i>
+                  <input type="text" class="form-control"
+                         name="since_when"
+                         placeholder="Ex : 3 mois, 2 ans..."/>
+                </div>
+              </div>
+
+              <!-- Notes supplémentaires -->
+              <div class="col-12">
+                <label class="form-label">
+                  Notes supplémentaires
+                  <span style="color:var(--gray);font-weight:400;">
+                    (optionnel)
+                  </span>
+                </label>
+                <textarea class="form-control"
+                          name="extra_notes" rows="3"
+                          placeholder="Changements récents, symptômes, antécédents..."
+                          style="resize:none;"></textarea>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- IMAGE -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <span class="card-title">
+              <i class="fa-solid fa-image"></i>
+              Image dermatologique
+            </span>
+          </div>
+          <div class="card-body">
+
+            <div class="upload-zone" id="uploadZone"
+                 onclick="document.getElementById('imgInput').click()">
+              <div class="upload-icon">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+              </div>
+              <h6>Cliquez ou glissez une image ici</h6>
+              <p>PNG, JPG, JPEG — Max 16 MB</p>
+            </div>
+
+            <input type="file" id="imgInput" name="image"
+                   accept=".png,.jpg,.jpeg"
+                   style="display:none;" required/>
+
+            <div id="previewBox" class="text-center mt-3"
+                 style="display:none;">
+              <img id="previewImg" src="" alt="preview"
+                   style="max-height:200px;border-radius:12px;
+                          border:2px solid var(--primary);
+                          box-shadow:var(--shadow-md);"/>
+              <p id="fileName" class="mt-2 mb-0"
+                 style="font-size:0.8rem;color:var(--gray);"></p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- BOUTON SUBMIT -->
+        <button type="submit" class="btn-primary-full" id="submitBtn">
+          <i class="fa-solid fa-brain"></i>
+          Lancer l'analyse IA
+        </button>
+
+      </form>
+    </div>
+
+    <!-- PANNEAU DROIT -->
+    <div class="col-lg-5 fade-up d3">
+
+      <!-- Comment ça marche -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <span class="card-title">
+            <i class="fa-solid fa-circle-question"></i>
+            Comment ça marche ?
+          </span>
+        </div>
+        <div class="card-body d-flex flex-column gap-3">
+          <div class="d-flex align-items-start gap-3">
+            <div style="width:36px;height:36px;border-radius:50%;
+                        background:var(--primary-light);
+                        color:var(--primary);font-weight:700;
+                        font-size:0.9rem;flex-shrink:0;
+                        display:flex;align-items:center;
+                        justify-content:center;">1</div>
+            <div>
+              <p class="mb-0" style="font-weight:600;font-size:0.875rem;">
+                Remplissez les infos patient
+              </p>
+              <p class="mb-0" style="font-size:0.8rem;color:var(--gray);">
+                Nom, âge, localisation et notes cliniques
+              </p>
+            </div>
+          </div>
+          <div class="d-flex align-items-start gap-3">
+            <div style="width:36px;height:36px;border-radius:50%;
+                        background:var(--primary-light);
+                        color:var(--primary);font-weight:700;
+                        font-size:0.9rem;flex-shrink:0;
+                        display:flex;align-items:center;
+                        justify-content:center;">2</div>
+            <div>
+              <p class="mb-0" style="font-weight:600;font-size:0.875rem;">
+                Uploadez l'image
+              </p>
+              <p class="mb-0" style="font-size:0.8rem;color:var(--gray);">
+                Photo claire de la lésion cutanée
+              </p>
+            </div>
+          </div>
+          <div class="d-flex align-items-start gap-3">
+            <div style="width:36px;height:36px;border-radius:50%;
+                        background:var(--primary-light);
+                        color:var(--primary);font-weight:700;
+                        font-size:0.9rem;flex-shrink:0;
+                        display:flex;align-items:center;
+                        justify-content:center;">3</div>
+            <div>
+              <p class="mb-0" style="font-weight:600;font-size:0.875rem;">
+                Obtenez le diagnostic
+              </p>
+              <p class="mb-0" style="font-size:0.8rem;color:var(--gray);">
+                Le modèle VGG16 analyse en quelques secondes
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Avertissement -->
+      <div class="card mb-4"
+           style="border-left:3px solid var(--warning);">
+        <div class="card-body">
+          <h6 style="color:var(--warning);font-weight:700;
+                     font-size:0.875rem;margin-bottom:8px;">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+            Avertissement médical
+          </h6>
+          <p class="mb-0"
+             style="font-size:0.82rem;color:var(--gray);line-height:1.6;">
+            Cet outil assiste le diagnostic et ne remplace pas
+            l'avis d'un dermatologue qualifié.
+          </p>
+        </div>
+      </div>
+
+      <!-- Formats -->
+      <div class="card">
+        <div class="card-body">
+          <p class="mb-2"
+             style="font-size:0.82rem;font-weight:700;
+                    color:var(--gray);text-transform:uppercase;
+                    letter-spacing:0.6px;">
+            Formats acceptés
+          </p>
+          <div class="d-flex gap-2 flex-wrap">
+            <span class="badge badge-info">PNG</span>
+            <span class="badge badge-info">JPG</span>
+            <span class="badge badge-info">JPEG</span>
+            <span class="badge"
+                  style="background:#fffbeb;color:var(--warning);
+                         border:1px solid #fde68a;">
+              Max 16 MB
+            </span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <h5 style="font-weight:700;color:var(--dark);margin-bottom:6px;">
+      Analyse en cours...
+    </h5>
+    <p style="font-size:0.85rem;color:var(--gray);margin:0;">
+      Le modèle VGG16 traite votre image
+    </p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const imgInput   = document.getElementById('imgInput');
+  const uploadZone = document.getElementById('uploadZone');
+  const previewBox = document.getElementById('previewBox');
+  const previewImg = document.getElementById('previewImg');
+  const fileName   = document.getElementById('fileName');
+
+  imgInput.addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      previewImg.src = e.target.result;
+      previewBox.style.display = 'block';
+      fileName.textContent =
+        `${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`;
+      uploadZone.classList.add('active');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  uploadZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    uploadZone.classList.add('active');
+  });
+  uploadZone.addEventListener('dragleave', () =>
+    uploadZone.classList.remove('active'));
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    imgInput.files = e.dataTransfer.files;
+    imgInput.dispatchEvent(new Event('change'));
+  });
+
+  document.getElementById('predictForm')
+    .addEventListener('submit', e => {
+      const name = document.getElementById('patient_name').value.trim();
+      const img  = imgInput.files[0];
+      if (!name || !img) { e.preventDefault(); return; }
+      document.getElementById('submitBtn').disabled = true;
+      document.getElementById('loadingOverlay').style.display = 'flex';
+    });
+</script>
+
+</body>
+</html>

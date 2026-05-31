@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Connexion — DermAI Detect</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet"/>
+</head>
+<body>
+
+<div class="login-page">
+
+  <!-- GAUCHE -->
+  <div class="login-left">
+    <div class="login-left-brand">
+      <div class="logo-box"><i class="fa-solid fa-microscope"></i></div>
+      <span>DermAI Detect</span>
+    </div>
+
+    <div class="login-left-content">
+      <h1>Détection du<br/><span>Cancer de Peau</span><br/>par IA</h1>
+      <p>Système d'analyse dermatologique assisté par intelligence artificielle basé sur le modèle VGG16.</p>
+    </div>
+
+    <div class="login-features">
+      <div class="login-feature-item">
+        <div class="feature-dot"></div>
+        Analyse en temps réel par modèle VGG16
+      </div>
+      <div class="login-feature-item">
+        <div class="feature-dot"></div>
+        Détection Malignant / Benign avec score de confiance
+      </div>
+      <div class="login-feature-item">
+        <div class="feature-dot"></div>
+        Historique complet des patients
+      </div>
+      <div class="login-feature-item">
+        <div class="feature-dot"></div>
+        Réservé au personnel médical autorisé
+      </div>
+    </div>
+  </div>
+
+  <!-- DROITE -->
+  <div class="login-right">
+    <div class="login-form-box">
+
+      <h2>Bon retour 👋</h2>
+      <p class="subtitle">Connectez-vous pour accéder au tableau de bord</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              <i class="fa-solid fa-circle-info"></i>{{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST" action="{{ url_for('login') }}" novalidate>
+
+        <div class="mb-4">
+          <label class="form-label">Nom d'utilisateur</label>
+          <div class="input-with-icon">
+            <i class="fa-solid fa-user input-icon"></i>
+            <input type="text" class="form-control"
+                   name="username" placeholder="Entrez votre identifiant"
+                   required autocomplete="username"/>
+          </div>
+        </div>
+
+        <div class="mb-5">
+          <label class="form-label">Mot de passe</label>
+          <div class="input-with-icon">
+            <i class="fa-solid fa-lock input-icon"></i>
+            <input type="password" class="form-control"
+                   id="passInput" name="password"
+                   placeholder="Entrez votre mot de passe"
+                   required autocomplete="current-password"/>
+            <button type="button" class="toggle-pass" id="togglePass">
+              <i class="fa-solid fa-eye" id="eyeIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary-full">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          Se connecter
+        </button>
+
+      </form>
+
+      <p class="text-center mt-4" style="font-size:0.8rem; color:var(--gray);">
+        <i class="fa-solid fa-shield-halved me-1"></i>
+        Accès réservé au personnel médical autorisé
+      </p>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const togglePass = document.getElementById('togglePass');
+  const passInput  = document.getElementById('passInput');
+  const eyeIcon    = document.getElementById('eyeIcon');
+  togglePass.addEventListener('click', () => {
+    const show = passInput.type === 'password';
+    passInput.type = show ? 'text' : 'password';
+    eyeIcon.className = show ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+  });
+</script>
+
+</body>
+</html>
