@@ -149,17 +149,17 @@ http://localhost:5000
 
 ## 📋 Fonctionnalités
 
-- ✅ Authentification login / logout
-- ✅ Upload sécurisé PNG, JPG, JPEG
-- ✅ Prétraitement automatique VGG16
-- ✅ Prédiction IA avec score de confiance
-- ✅ Notes cliniques (localisation, taille, durée)
-- ✅ Sauvegarde MySQL des résultats
-- ✅ Dashboard avec statistiques et graphique
-- ✅ Historique patients avec recherche et filtres
-- ✅ Suppression de patients
-- ✅ Modal détails par patient
-- ✅ Design médical responsive Bootstrap 5
+-  Authentification login / logout
+-  Upload sécurisé PNG, JPG, JPEG
+-  Prétraitement automatique VGG16
+-  Prédiction IA avec score de confiance
+-  Notes cliniques (localisation, taille, durée)
+-  Sauvegarde MySQL des résultats
+-  Dashboard avec statistiques et graphique
+-  Historique patients avec recherche et filtres
+-  Suppression de patients
+-  Modal détails par patient
+-  Design médical responsive Bootstrap 5
 
 ---
 

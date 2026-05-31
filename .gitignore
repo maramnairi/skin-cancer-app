@@ -5,6 +5,9 @@ model/
 static/uploads/*
 !static/uploads/.gitkeep
 
+
+screenshots/
+
 # Python
 __pycache__/
 *.pyc
